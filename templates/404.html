@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Page Not Found - Frenz Job Tracker</title>
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+</head>
+
+<body class="error-page">
+
+    <main class="error-container">
+
+        <div class="error-code">
+            404
+        </div>
+
+        <h1>Page not found</h1>
+
+        <p>
+            Oops! The page you're looking for doesn't exist
+            or may have been moved.
+        </p>
+
+        <a
+            href="{{ url_for('home') }}"
+            class="error-home-button"
+        >
+            Back to Dashboard
+        </a>
+
+    </main>
+
+</body>
+</html>

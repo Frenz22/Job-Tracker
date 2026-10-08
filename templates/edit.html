@@ -1,0 +1,383 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Edit Application - Frenz Job Tracker</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="brand-logo">
+            F
+        </div>
+
+        <div>
+
+            <div class="brand-name">
+                Frenz Job Tracker
+            </div>
+
+            <div class="brand-subtitle">
+                Your job search command center
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <a
+        href="{{ url_for('home') }}"
+        class="back-button"
+    >
+        ← Back to Applications
+    </a>
+
+</header>
+
+
+<main class="edit-page">
+
+    <div class="edit-container">
+
+        <div class="edit-modal-card">
+
+            <div class="modal-header">
+
+                <div>
+
+                    <h2>
+                        Edit Application
+                    </h2>
+
+                    <p>
+                        Update your application details.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('edit_application', application_id=application._id) }}"
+            >
+
+                <div class="form-grid">
+
+                    <div class="form-group">
+
+                        <label for="company">
+                            Company
+                        </label>
+
+                        <input
+                            type="text"
+                            id="company"
+                            name="company"
+                            value="{{ application.company }}"
+                            placeholder="e.g. Google"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="position">
+                            Position
+                        </label>
+
+                        <input
+                            type="text"
+                            id="position"
+                            name="position"
+                            value="{{ application.position }}"
+                            placeholder="e.g. Software Engineer"
+                            required
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="location">
+                            Location
+                        </label>
+
+                        <input
+                            type="text"
+                            id="location"
+                            name="location"
+                            value="{{ application.location or '' }}"
+                            placeholder="e.g. Manila / Remote"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group">
+
+                        <label for="date_applied">
+                            Date Applied
+                        </label>
+
+                        <input
+                            type="date"
+                            id="date_applied"
+                            name="date_applied"
+                            value="{{ application.date_applied or '' }}"
+                        >
+
+                    </div>
+
+
+                    <div class="form-group form-group-full">
+
+                        <label for="status">
+                            Status
+                        </label>
+
+                        <select
+                            id="status"
+                            name="status"
+                        >
+
+                            <option
+                                value="Saved"
+                                {% if application.status == "Saved" %}selected{% endif %}
+                            >
+                                Saved
+                            </option>
+
+                            <option
+                                value="Applied"
+                                {% if application.status == "Applied" %}selected{% endif %}
+                            >
+                                Applied
+                            </option>
+
+                            <option
+                                value="Interview"
+                                {% if application.status == "Interview" %}selected{% endif %}
+                            >
+                                Interview
+                            </option>
+
+                            <option
+                                value="Final Interview"
+                                {% if application.status == "Final Interview" %}selected{% endif %}
+                            >
+                                Final Interview
+                            </option>
+
+                            <option
+                                value="Offer"
+                                {% if application.status == "Offer" %}selected{% endif %}
+                            >
+                                Offer
+                            </option>
+
+                            <option
+                                value="Rejected"
+                                {% if application.status == "Rejected" %}selected{% endif %}
+                            >
+                                Rejected
+                            </option>
+
+                        </select>
+
+                    </div>
+
+
+                    <div class="form-group form-group-full">
+
+                        <label for="notes">
+                            Notes
+                        </label>
+
+                        <textarea
+                            id="notes"
+                            name="notes"
+                            rows="5"
+                            placeholder="Add notes about this application..."
+                        >{{ application.notes or '' }}</textarea>
+
+                    </div>
+
+                </div>
+
+
+                <div class="modal-footer">
+
+                    <a
+                        href="{{ url_for('home') }}"
+                        class="secondary-button"
+                    >
+                        Cancel
+                    </a>
+
+                    <button
+                        type="submit"
+                        class="primary-button"
+                    >
+                        Save Changes
+                    </button>
+
+                </div>
+
+            </form>
+
+        </div>
+
+
+        {% if application.interviews %}
+
+        <div class="details-card">
+
+            <div class="details-card-header">
+
+                <div>
+
+                    <h2>
+                        Interviews
+                    </h2>
+
+                    <p>
+                        Interviews associated with this application.
+                    </p>
+
+                </div>
+
+            </div>
+
+
+            {% for interview in application.interviews %}
+
+            <div class="interview-item">
+
+                <div>
+
+                    <strong>
+                        {{ interview.type }}
+                    </strong>
+
+                    <p>
+                        {{ interview.date }}
+
+                        {% if interview.interviewer %}
+                            · {{ interview.interviewer }}
+                        {% endif %}
+                    </p>
+
+                    {% if interview.notes %}
+
+                    <span>
+                        {{ interview.notes }}
+                    </span>
+
+                    {% endif %}
+
+                </div>
+
+
+                <form
+                    method="POST"
+                    action="{{ url_for(
+                        'delete_interview',
+                        application_id=application._id,
+                        interview_index=loop.index0
+                    ) }}"
+                >
+
+                    <button
+                        type="submit"
+                        class="delete-small-button"
+                    >
+                        Delete
+                    </button>
+
+                </form>
+
+            </div>
+
+            {% endfor %}
+
+        </div>
+
+        {% endif %}
+
+
+        <div class="danger-card">
+
+            <div>
+
+                <h2>
+                    Delete Application
+                </h2>
+
+                <p>
+                    This will permanently remove this application.
+                </p>
+
+            </div>
+
+
+            <form
+                method="POST"
+                action="{{ url_for('delete_application', application_id=application._id) }}"
+                onsubmit="return confirm('Delete this application?');"
+            >
+
+                <button
+                    type="submit"
+                    class="delete-button"
+                >
+                    Delete Application
+                </button>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</main>
+
+</body>
+
+</html>

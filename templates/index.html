@@ -1,0 +1,2065 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0"
+    >
+
+    <title>Frenz Job Tracker</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+
+    <link
+        rel="preconnect"
+        href="https://fonts.gstatic.com"
+        crossorigin
+    >
+
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap"
+        rel="stylesheet"
+    >
+
+    <link
+        rel="stylesheet"
+        href="{{ url_for('static', filename='style.css') }}"
+    >
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+    <div class="brand">
+
+        <div class="brand-logo">
+            F
+        </div>
+
+        <div>
+
+            <div class="brand-name">
+                Frenz Job Tracker
+            </div>
+
+            <div class="brand-subtitle">
+                Your job search command center
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <div class="profile-wrapper">
+
+        <button
+            class="profile-button"
+            id="profileButton"
+            type="button"
+        >
+
+            <div class="profile-avatar">
+                {{ username[0]|upper if username else "U" }}
+            </div>
+
+            <div class="profile-info">
+
+                <strong>
+                    {{ username }}
+                </strong>
+
+                <span>
+                    {{ user_email }}
+                </span>
+
+            </div>
+
+            <span class="profile-arrow">
+                ⌄
+            </span>
+
+        </button>
+
+
+        <div
+            class="profile-dropdown"
+            id="profileDropdown"
+        >
+
+            <a href="{{ url_for('logout') }}">
+                Logout
+            </a>
+
+        </div>
+
+    </div>
+
+</header>
+
+
+<main class="dashboard">
+
+    <section class="dashboard-header">
+
+        <div>
+
+            <h1>
+                Good to see you, {{ username }}.
+            </h1>
+
+            <p>
+                Keep track of your applications and move them through your job search.
+            </p>
+
+        </div>
+
+
+        <button
+            class="manage-columns-btn"
+            type="button"
+            onclick="openAddModal('Saved')"
+        >
+            + Add Application
+        </button>
+
+    </section>
+
+
+    <section class="dashboard-controls">
+
+        <section class="search-section">
+
+            <div class="search-box">
+
+                <span class="search-icon">
+                    ⌕
+                </span>
+
+                <input
+                    type="text"
+                    id="applicationSearch"
+                    placeholder="Search company, position, or location..."
+                    autocomplete="off"
+                >
+
+                <button
+                    type="button"
+                    class="clear-search"
+                    id="clearSearch"
+                    onclick="clearSearch()"
+                >
+                    ×
+                </button>
+
+            </div>
+
+        </section>
+
+
+        <button
+            class="manage-columns-btn"
+            type="button"
+            onclick="openColumnsModal()"
+        >
+            ⚙ Manage Columns
+        </button>
+
+    </section>
+
+
+    <div class="kanban-wrapper">
+
+        <section class="kanban-board">
+
+            <!-- SAVED -->
+
+            <div
+                class="kanban-column"
+                data-status="Saved"
+                ondragover="allowDrop(event)"
+                ondrop="dropApplication(event)"
+            >
+
+                <div class="column-header">
+
+                    <div class="column-title">
+
+                        <span class="status-dot saved"></span>
+
+                        <span>
+                            Saved
+                        </span>
+
+                        <span
+                            class="column-count"
+                            data-count-for="Saved"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="column-add"
+                        type="button"
+                        onclick="openAddModal('Saved')"
+                        title="Add application to Saved"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+
+                <div class="job-list">
+
+                    {% for application in applications %}
+
+                        {% if application.status == "Saved" %}
+
+                            <div
+                                class="job-card"
+                                draggable="true"
+                                data-id="{{ application._id }}"
+                                data-status="{{ application.status }}"
+                                data-company="{{ application.company|lower }}"
+                                data-position="{{ application.position|lower }}"
+                                data-location="{{ application.location|lower }}"
+                                onclick="openApplication(event, '{{ application._id }}')"
+                                ondragstart="dragStart(event)"
+                                ondragend="dragEnd(event)"
+                            >
+
+                                <div class="job-card-top">
+
+                                    <button
+                                        type="button"
+                                        class="drag-handle"
+                                        onclick="toggleCardMenu(event, this)"
+                                        aria-label="Application actions"
+                                    >
+                                        ⋮⋮
+                                    </button>
+
+                                </div>
+
+
+                                <h3>
+                                    {{ application.position }}
+                                </h3>
+
+                                <p class="company-name">
+                                    {{ application.company }}
+                                </p>
+
+                                {% if application.location %}
+
+                                    <p class="job-location">
+                                        📍 {{ application.location }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.date_applied %}
+
+                                    <p class="job-date">
+                                        📅 Applied {{ application.date_applied | format_date }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.notes %}
+
+                                    <p class="job-notes">
+                                        {{ application.notes }}
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- APPLIED -->
+
+            <div
+                class="kanban-column"
+                data-status="Applied"
+                ondragover="allowDrop(event)"
+                ondrop="dropApplication(event)"
+            >
+
+                <div class="column-header">
+
+                    <div class="column-title">
+
+                        <span class="status-dot applied"></span>
+
+                        <span>
+                            Applied
+                        </span>
+
+                        <span
+                            class="column-count"
+                            data-count-for="Applied"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="column-add"
+                        type="button"
+                        onclick="openAddModal('Applied')"
+                        title="Add application to Applied"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+
+                <div class="job-list">
+
+                    {% for application in applications %}
+
+                        {% if application.status == "Applied" %}
+
+                            <div
+                                class="job-card"
+                                draggable="true"
+                                data-id="{{ application._id }}"
+                                data-status="{{ application.status }}"
+                                data-company="{{ application.company|lower }}"
+                                data-position="{{ application.position|lower }}"
+                                data-location="{{ application.location|lower }}"
+                                onclick="openApplication(event, '{{ application._id }}')"
+                                ondragstart="dragStart(event)"
+                                ondragend="dragEnd(event)"
+                            >
+
+                                <div class="job-card-top">
+
+                                    <button
+                                        type="button"
+                                        class="drag-handle"
+                                        onclick="toggleCardMenu(event, this)"
+                                        aria-label="Application actions"
+                                    >
+                                        ⋮⋮
+                                    </button>
+
+                                </div>
+
+
+                                <h3>
+                                    {{ application.position }}
+                                </h3>
+
+                                <p class="company-name">
+                                    {{ application.company }}
+                                </p>
+
+                                {% if application.location %}
+
+                                    <p class="job-location">
+                                        📍 {{ application.location }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.date_applied %}
+
+                                    <p class="job-date">
+                                        📅 Applied {{ application.date_applied | format_date }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.notes %}
+
+                                    <p class="job-notes">
+                                        {{ application.notes }}
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- INTERVIEW -->
+
+            <div
+                class="kanban-column"
+                data-status="Interview"
+                ondragover="allowDrop(event)"
+                ondrop="dropApplication(event)"
+            >
+
+                <div class="column-header">
+
+                    <div class="column-title">
+
+                        <span class="status-dot interview"></span>
+
+                        <span>
+                            Interview
+                        </span>
+
+                        <span
+                            class="column-count"
+                            data-count-for="Interview"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="column-add"
+                        type="button"
+                        onclick="openAddModal('Interview')"
+                        title="Add application to Interview"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+
+                <div class="job-list">
+
+                    {% for application in applications %}
+
+                        {% if application.status == "Interview" %}
+
+                            <div
+                                class="job-card"
+                                draggable="true"
+                                data-id="{{ application._id }}"
+                                data-status="{{ application.status }}"
+                                data-company="{{ application.company|lower }}"
+                                data-position="{{ application.position|lower }}"
+                                data-location="{{ application.location|lower }}"
+                                onclick="openApplication(event, '{{ application._id }}')"
+                                ondragstart="dragStart(event)"
+                                ondragend="dragEnd(event)"
+                            >
+
+                                <div class="job-card-top">
+
+                                    <button
+                                        type="button"
+                                        class="drag-handle"
+                                        onclick="toggleCardMenu(event, this)"
+                                        aria-label="Application actions"
+                                    >
+                                        ⋮⋮
+                                    </button>
+
+                                </div>
+
+
+                                <h3>
+                                    {{ application.position }}
+                                </h3>
+
+                                <p class="company-name">
+                                    {{ application.company }}
+                                </p>
+
+                                {% if application.location %}
+
+                                    <p class="job-location">
+                                        📍 {{ application.location }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.date_applied %}
+
+                                    <p class="job-date">
+                                        📅 Applied {{ application.date_applied | format_date }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.notes %}
+
+                                    <p class="job-notes">
+                                        {{ application.notes }}
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- FINAL INTERVIEW -->
+
+            <div
+                class="kanban-column"
+                data-status="Final Interview"
+                ondragover="allowDrop(event)"
+                ondrop="dropApplication(event)"
+            >
+
+                <div class="column-header">
+
+                    <div class="column-title">
+
+                        <span class="status-dot final-interview"></span>
+
+                        <span>
+                            Final Interview
+                        </span>
+
+                        <span
+                            class="column-count"
+                            data-count-for="Final Interview"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="column-add"
+                        type="button"
+                        onclick="openAddModal('Final Interview')"
+                        title="Add application to Final Interview"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+
+                <div class="job-list">
+
+                    {% for application in applications %}
+
+                        {% if application.status == "Final Interview" %}
+
+                            <div
+                                class="job-card"
+                                draggable="true"
+                                data-id="{{ application._id }}"
+                                data-status="{{ application.status }}"
+                                data-company="{{ application.company|lower }}"
+                                data-position="{{ application.position|lower }}"
+                                data-location="{{ application.location|lower }}"
+                                onclick="openApplication(event, '{{ application._id }}')"
+                                ondragstart="dragStart(event)"
+                                ondragend="dragEnd(event)"
+                            >
+
+                                <div class="job-card-top">
+
+                                    <button
+                                        type="button"
+                                        class="drag-handle"
+                                        onclick="toggleCardMenu(event, this)"
+                                        aria-label="Application actions"
+                                    >
+                                        ⋮⋮
+                                    </button>
+
+                                </div>
+
+
+                                <h3>
+                                    {{ application.position }}
+                                </h3>
+
+                                <p class="company-name">
+                                    {{ application.company }}
+                                </p>
+
+                                {% if application.location %}
+
+                                    <p class="job-location">
+                                        📍 {{ application.location }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.date_applied %}
+
+                                    <p class="job-date">
+                                        📅 Applied {{ application.date_applied | format_date }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.notes %}
+
+                                    <p class="job-notes">
+                                        {{ application.notes }}
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- OFFER -->
+
+            <div
+                class="kanban-column"
+                data-status="Offer"
+                ondragover="allowDrop(event)"
+                ondrop="dropApplication(event)"
+            >
+
+                <div class="column-header">
+
+                    <div class="column-title">
+
+                        <span class="status-dot offer"></span>
+
+                        <span>
+                            Offer
+                        </span>
+
+                        <span
+                            class="column-count"
+                            data-count-for="Offer"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="column-add"
+                        type="button"
+                        onclick="openAddModal('Offer')"
+                        title="Add application to Offer"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+
+                <div class="job-list">
+
+                    {% for application in applications %}
+
+                        {% if application.status == "Offer" %}
+
+                            <div
+                                class="job-card"
+                                draggable="true"
+                                data-id="{{ application._id }}"
+                                data-status="{{ application.status }}"
+                                data-company="{{ application.company|lower }}"
+                                data-position="{{ application.position|lower }}"
+                                data-location="{{ application.location|lower }}"
+                                onclick="openApplication(event, '{{ application._id }}')"
+                                ondragstart="dragStart(event)"
+                                ondragend="dragEnd(event)"
+                            >
+
+                                <div class="job-card-top">
+
+                                    <button
+                                        type="button"
+                                        class="drag-handle"
+                                        onclick="toggleCardMenu(event, this)"
+                                        aria-label="Application actions"
+                                    >
+                                        ⋮⋮
+                                    </button>
+
+                                </div>
+
+
+                                <h3>
+                                    {{ application.position }}
+                                </h3>
+
+                                <p class="company-name">
+                                    {{ application.company }}
+                                </p>
+
+                                {% if application.location %}
+
+                                    <p class="job-location">
+                                        📍 {{ application.location }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.date_applied %}
+
+                                    <p class="job-date">
+                                        📅 Applied {{ application.date_applied | format_date }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.notes %}
+
+                                    <p class="job-notes">
+                                        {{ application.notes }}
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+
+            <!-- REJECTED -->
+
+            <div
+                class="kanban-column"
+                data-status="Rejected"
+                ondragover="allowDrop(event)"
+                ondrop="dropApplication(event)"
+            >
+
+                <div class="column-header">
+
+                    <div class="column-title">
+
+                        <span class="status-dot rejected"></span>
+
+                        <span>
+                            Rejected
+                        </span>
+
+                        <span
+                            class="column-count"
+                            data-count-for="Rejected"
+                        >
+                            0
+                        </span>
+
+                    </div>
+
+                    <button
+                        class="column-add"
+                        type="button"
+                        onclick="openAddModal('Rejected')"
+                        title="Add application to Rejected"
+                    >
+                        +
+                    </button>
+
+                </div>
+
+
+                <div class="job-list">
+
+                    {% for application in applications %}
+
+                        {% if application.status == "Rejected" %}
+
+                            <div
+                                class="job-card"
+                                draggable="true"
+                                data-id="{{ application._id }}"
+                                data-status="{{ application.status }}"
+                                data-company="{{ application.company|lower }}"
+                                data-position="{{ application.position|lower }}"
+                                data-location="{{ application.location|lower }}"
+                                onclick="openApplication(event, '{{ application._id }}')"
+                                ondragstart="dragStart(event)"
+                                ondragend="dragEnd(event)"
+                            >
+
+                                <div class="job-card-top">
+
+                                    <button
+                                        type="button"
+                                        class="drag-handle"
+                                        onclick="toggleCardMenu(event, this)"
+                                        aria-label="Application actions"
+                                    >
+                                        ⋮⋮
+                                    </button>
+
+                                </div>
+
+
+                                <h3>
+                                    {{ application.position }}
+                                </h3>
+
+                                <p class="company-name">
+                                    {{ application.company }}
+                                </p>
+
+                                {% if application.location %}
+
+                                    <p class="job-location">
+                                        📍 {{ application.location }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.date_applied %}
+
+                                    <p class="job-date">
+                                        📅 Applied {{ application.date_applied | format_date }}
+                                    </p>
+
+                                {% endif %}
+
+                                {% if application.notes %}
+
+                                    <p class="job-notes">
+                                        {{ application.notes }}
+                                    </p>
+
+                                {% endif %}
+
+                            </div>
+
+                        {% endif %}
+
+                    {% endfor %}
+
+                </div>
+
+            </div>
+
+        </section>
+
+    </div>
+
+</main>
+
+
+<!-- ADD APPLICATION MODAL -->
+
+<div
+    class="modal-overlay"
+    id="addModal"
+>
+
+    <div
+        class="application-modal"
+        onclick="event.stopPropagation()"
+    >
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Add Application
+                </h2>
+
+                <p>
+                    Add a new job to your tracker.
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closeAddModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <form
+            method="POST"
+            action="{{ url_for('add_application') }}"
+        >
+
+            <div class="form-grid">
+
+                <div class="form-group">
+
+                    <label for="company">
+                        Company
+                    </label>
+
+                    <input
+                        type="text"
+                        id="company"
+                        name="company"
+                        placeholder="e.g. Google"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="position">
+                        Position
+                    </label>
+
+                    <input
+                        type="text"
+                        id="position"
+                        name="position"
+                        placeholder="e.g. Software Engineer"
+                        required
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="location">
+                        Location
+                    </label>
+
+                    <input
+                        type="text"
+                        id="location"
+                        name="location"
+                        placeholder="e.g. Manila / Remote"
+                    >
+
+                </div>
+
+
+                <div class="form-group">
+
+                    <label for="date_applied">
+                        Date Applied
+                    </label>
+
+                    <input
+                        type="date"
+                        id="date_applied"
+                        name="date_applied"
+                    >
+
+                </div>
+
+
+                <div class="form-group form-group-full">
+
+                    <label for="status">
+                        Status
+                    </label>
+
+                    <select
+                        id="status"
+                        name="status"
+                    >
+
+                        <option value="Saved">
+                            Saved
+                        </option>
+
+                        <option value="Applied">
+                            Applied
+                        </option>
+
+                        <option value="Interview">
+                            Interview
+                        </option>
+
+                        <option value="Final Interview">
+                            Final Interview
+                        </option>
+
+                        <option value="Offer">
+                            Offer
+                        </option>
+
+                        <option value="Rejected">
+                            Rejected
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="form-group form-group-full">
+
+                    <label for="notes">
+                        Notes
+                    </label>
+
+                    <textarea
+                        id="notes"
+                        name="notes"
+                        rows="4"
+                        placeholder="Add notes about this application..."
+                    ></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="modal-footer">
+
+                <button
+                    type="button"
+                    class="secondary-button"
+                    onclick="closeAddModal()"
+                >
+                    Cancel
+                </button>
+
+                <button
+                    type="submit"
+                    class="primary-button"
+                >
+                    Add Application
+                </button>
+
+            </div>
+
+        </form>
+
+    </div>
+
+</div>
+
+
+<!-- MANAGE COLUMNS MODAL -->
+
+<div
+    class="modal-overlay"
+    id="columnsModal"
+>
+
+    <div
+        class="columns-modal"
+        onclick="event.stopPropagation()"
+    >
+
+        <div class="modal-header">
+
+            <div>
+
+                <h2>
+                    Manage Columns
+                </h2>
+
+                <p>
+                    Choose which columns appear on your dashboard.
+                </p>
+
+            </div>
+
+            <button
+                type="button"
+                class="modal-close"
+                onclick="closeColumnsModal()"
+            >
+                ×
+            </button>
+
+        </div>
+
+
+        <div class="column-options">
+
+            <label class="column-option">
+
+                <input
+                    type="checkbox"
+                    data-column="Saved"
+                    checked
+                >
+
+                <span>
+                    Saved
+                </span>
+
+            </label>
+
+
+            <label class="column-option">
+
+                <input
+                    type="checkbox"
+                    data-column="Applied"
+                    checked
+                >
+
+                <span>
+                    Applied
+                </span>
+
+            </label>
+
+
+            <label class="column-option">
+
+                <input
+                    type="checkbox"
+                    data-column="Interview"
+                    checked
+                >
+
+                <span>
+                    Interview
+                </span>
+
+            </label>
+
+
+            <label class="column-option">
+
+                <input
+                    type="checkbox"
+                    data-column="Final Interview"
+                    checked
+                >
+
+                <span>
+                    Final Interview
+                </span>
+
+            </label>
+
+
+            <label class="column-option">
+
+                <input
+                    type="checkbox"
+                    data-column="Offer"
+                    checked
+                >
+
+                <span>
+                    Offer
+                </span>
+
+            </label>
+
+
+            <label class="column-option">
+
+                <input
+                    type="checkbox"
+                    data-column="Rejected"
+                    checked
+                >
+
+                <span>
+                    Rejected
+                </span>
+
+            </label>
+
+        </div>
+
+
+        <div class="columns-modal-footer">
+
+            <button
+                type="button"
+                class="reset-columns-btn"
+                onclick="resetColumns()"
+            >
+                Reset
+            </button>
+
+            <button
+                type="button"
+                class="save-columns-btn"
+                onclick="closeColumnsModal()"
+            >
+                Done
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<script>
+
+let draggedApplicationId = null;
+let openCardMenuElement = null;
+
+
+// PROFILE DROPDOWN
+
+const profileButton =
+    document.getElementById("profileButton");
+
+const profileDropdown =
+    document.getElementById("profileDropdown");
+
+profileButton.addEventListener(
+    "click",
+    function(event) {
+
+        event.stopPropagation();
+
+        profileDropdown.classList.toggle(
+            "show"
+        );
+
+    }
+);
+
+
+// ADD MODAL
+
+const addModal =
+    document.getElementById("addModal");
+
+const statusInput =
+    document.getElementById("status");
+
+function openAddModal(status = "Saved") {
+
+    statusInput.value = status;
+
+    addModal.classList.add("show");
+
+    document.body.classList.add("modal-open");
+
+    setTimeout(function() {
+
+        document
+            .getElementById("company")
+            .focus();
+
+    }, 100);
+
+}
+
+
+function closeAddModal() {
+
+    addModal.classList.remove("show");
+
+    document.body.classList.remove("modal-open");
+
+}
+
+
+// SEARCH
+
+const searchInput =
+    document.getElementById("applicationSearch");
+
+const clearSearchButton =
+    document.getElementById("clearSearch");
+
+searchInput.addEventListener(
+    "input",
+    function() {
+
+        const searchTerm =
+            this.value.trim().toLowerCase();
+
+        const cards =
+            document.querySelectorAll(".job-card");
+
+        cards.forEach(function(card) {
+
+            const company =
+                card.dataset.company || "";
+
+            const position =
+                card.dataset.position || "";
+
+            const location =
+                card.dataset.location || "";
+
+            const matches =
+                company.includes(searchTerm) ||
+                position.includes(searchTerm) ||
+                location.includes(searchTerm);
+
+            card.style.display =
+                matches ? "" : "none";
+
+        });
+
+        clearSearchButton.style.display =
+            searchTerm ? "block" : "none";
+
+        updateColumnCounts();
+
+    }
+);
+
+
+function clearSearch() {
+
+    searchInput.value = "";
+
+    searchInput.dispatchEvent(
+        new Event("input")
+    );
+
+    searchInput.focus();
+
+}
+
+
+// UPDATE COLUMN COUNTS
+
+function updateColumnCounts() {
+
+    const columns =
+        document.querySelectorAll(".kanban-column");
+
+    columns.forEach(function(column) {
+
+        const status =
+            column.dataset.status;
+
+        const cards =
+            column.querySelectorAll(".job-card");
+
+        let visibleCount = 0;
+
+        cards.forEach(function(card) {
+
+            if (card.style.display !== "none") {
+                visibleCount++;
+            }
+
+        });
+
+        const counter =
+            document.querySelector(
+                `[data-count-for="${status}"]`
+            );
+
+        if (counter) {
+            counter.textContent = visibleCount;
+        }
+
+    });
+
+}
+
+updateColumnCounts();
+
+
+// DRAG AND DROP
+
+function dragStart(event) {
+
+    draggedApplicationId =
+        event.currentTarget.dataset.id;
+
+    event.currentTarget.classList.add("dragging");
+
+    event.dataTransfer.effectAllowed = "move";
+
+    event.dataTransfer.setData(
+        "text/plain",
+        draggedApplicationId
+    );
+
+}
+
+
+function dragEnd(event) {
+
+    event.currentTarget.classList.remove("dragging");
+
+    draggedApplicationId = null;
+
+}
+
+
+function allowDrop(event) {
+
+    event.preventDefault();
+
+    event.currentTarget.classList.add("drag-over");
+
+}
+
+
+async function dropApplication(event) {
+
+    event.preventDefault();
+
+    const column =
+        event.currentTarget;
+
+    column.classList.remove("drag-over");
+
+    const applicationId =
+        event.dataTransfer.getData("text/plain") ||
+        draggedApplicationId;
+
+    const newStatus =
+        column.dataset.status;
+
+    if (!applicationId || !newStatus) {
+        return;
+    }
+
+    try {
+
+        const response = await fetch(
+            `/applications/${applicationId}/status`,
+            {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({
+                    status: newStatus
+                })
+            }
+        );
+
+        const data =
+            await response.json();
+
+        if (!response.ok || !data.success) {
+
+            alert(
+                data.message ||
+                "Unable to update application."
+            );
+
+            return;
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Something went wrong while updating the application."
+        );
+
+    }
+
+}
+
+
+// REMOVE DRAG-OVER STATE
+
+document
+    .querySelectorAll(".kanban-column")
+    .forEach(function(column) {
+
+        column.addEventListener(
+            "dragleave",
+            function() {
+
+                this.classList.remove("drag-over");
+
+            }
+        );
+
+    });
+
+
+// OPEN APPLICATION
+
+function openApplication(event, applicationId) {
+
+    if (
+        event.target.closest(".drag-handle") ||
+        event.target.closest(".card-menu")
+    ) {
+        return;
+    }
+
+    window.location.href =
+        `/applications/${applicationId}/edit`;
+
+}
+
+
+// CARD ACTION MENU
+
+const applicationStatuses = [
+    "Saved",
+    "Applied",
+    "Interview",
+    "Final Interview",
+    "Offer",
+    "Rejected"
+];
+
+
+function closeCardMenu() {
+
+    if (openCardMenuElement) {
+
+        openCardMenuElement.remove();
+
+        openCardMenuElement = null;
+
+    }
+
+}
+
+
+function toggleCardMenu(event, button) {
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    if (openCardMenuElement) {
+        closeCardMenu();
+    }
+
+    const card =
+        button.closest(".job-card");
+
+    const applicationId =
+        card.dataset.id;
+
+    const currentStatus =
+        card.dataset.status;
+
+    const menu =
+        document.createElement("div");
+
+    menu.className =
+        "card-menu card-menu-floating";
+
+    const editLink =
+        document.createElement("a");
+
+    editLink.href =
+        `/applications/${applicationId}/edit`;
+
+    editLink.className =
+        "menu-edit";
+
+    editLink.textContent =
+        "Edit";
+
+    editLink.addEventListener(
+        "click",
+        function(event) {
+            event.stopPropagation();
+        }
+    );
+
+    menu.appendChild(editLink);
+
+    const divider =
+        document.createElement("div");
+
+    divider.className =
+        "menu-divider";
+
+    menu.appendChild(divider);
+
+
+    applicationStatuses.forEach(function(status) {
+
+        if (status === currentStatus) {
+            return;
+        }
+
+        const moveButton =
+            document.createElement("button");
+
+        moveButton.type =
+            "button";
+
+        moveButton.textContent =
+            `Move to ${status}`;
+
+        moveButton.addEventListener(
+            "click",
+            function(event) {
+
+                moveApplication(
+                    event,
+                    applicationId,
+                    status
+                );
+
+            }
+        );
+
+        menu.appendChild(moveButton);
+
+    });
+
+
+    document.body.appendChild(menu);
+
+    openCardMenuElement =
+        menu;
+
+    const buttonRect =
+        button.getBoundingClientRect();
+
+    menu.style.display =
+        "block";
+
+    const menuRect =
+        menu.getBoundingClientRect();
+
+    let top =
+        buttonRect.bottom + 6;
+
+    let left =
+        buttonRect.right - menuRect.width;
+
+
+    if (
+        top + menuRect.height >
+        window.innerHeight - 8
+    ) {
+
+        top =
+            buttonRect.top -
+            menuRect.height -
+            6;
+
+    }
+
+
+    if (left < 8) {
+        left = 8;
+    }
+
+
+    if (
+        left + menuRect.width >
+        window.innerWidth - 8
+    ) {
+
+        left =
+            window.innerWidth -
+            menuRect.width -
+            8;
+
+    }
+
+
+    menu.style.top =
+        `${top}px`;
+
+    menu.style.left =
+        `${left}px`;
+
+}
+
+
+async function moveApplication(
+    event,
+    applicationId,
+    newStatus
+) {
+
+    event.preventDefault();
+    event.stopPropagation();
+
+    closeCardMenu();
+
+    try {
+
+        const response =
+            await fetch(
+                `/applications/${applicationId}/status`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+                    body: JSON.stringify({
+                        status: newStatus
+                    })
+                }
+            );
+
+        const data =
+            await response.json();
+
+        if (
+            !response.ok ||
+            !data.success
+        ) {
+
+            alert(
+                data.message ||
+                "Unable to update application."
+            );
+
+            return;
+        }
+
+        window.location.reload();
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "Something went wrong while moving the application."
+        );
+
+    }
+
+}
+
+
+// MANAGE COLUMNS
+
+const columnStorageKey =
+    "frenzHiddenColumns";
+
+
+function openColumnsModal() {
+
+    document
+        .getElementById("columnsModal")
+        .classList.add("show");
+
+    document.body.classList.add("modal-open");
+
+}
+
+
+function closeColumnsModal() {
+
+    document
+        .getElementById("columnsModal")
+        .classList.remove("show");
+
+    document.body.classList.remove("modal-open");
+
+}
+
+
+function loadColumnPreferences() {
+
+    const saved =
+        localStorage.getItem(columnStorageKey);
+
+    let hiddenColumns = [];
+
+    if (saved) {
+
+        try {
+
+            hiddenColumns =
+                JSON.parse(saved);
+
+        } catch (error) {
+
+            hiddenColumns = [];
+
+        }
+
+    }
+
+
+    document
+        .querySelectorAll(".kanban-column")
+        .forEach(function(column) {
+
+            const status =
+                column.dataset.status;
+
+            if (hiddenColumns.includes(status)) {
+
+                column.classList.add(
+                    "column-hidden"
+                );
+
+            } else {
+
+                column.classList.remove(
+                    "column-hidden"
+                );
+
+            }
+
+        });
+
+
+    document
+        .querySelectorAll(".column-option input")
+        .forEach(function(checkbox) {
+
+            checkbox.checked =
+                !hiddenColumns.includes(
+                    checkbox.dataset.column
+                );
+
+            checkbox.onchange =
+                saveColumnPreferences;
+
+        });
+
+
+    updateColumnCounts();
+
+}
+
+
+function saveColumnPreferences() {
+
+    const checkboxes =
+        document.querySelectorAll(
+            ".column-option input"
+        );
+
+    const checkedColumns =
+        Array.from(checkboxes).filter(
+            function(checkbox) {
+                return checkbox.checked;
+            }
+        );
+
+
+    if (checkedColumns.length === 0) {
+
+        alert(
+            "At least one column must remain visible."
+        );
+
+        return;
+
+    }
+
+
+    const hiddenColumns = [];
+
+    checkboxes.forEach(function(checkbox) {
+
+        if (!checkbox.checked) {
+
+            hiddenColumns.push(
+                checkbox.dataset.column
+            );
+
+        }
+
+    });
+
+
+    localStorage.setItem(
+        columnStorageKey,
+        JSON.stringify(hiddenColumns)
+    );
+
+
+    document
+        .querySelectorAll(".kanban-column")
+        .forEach(function(column) {
+
+            const status =
+                column.dataset.status;
+
+            if (hiddenColumns.includes(status)) {
+
+                column.classList.add(
+                    "column-hidden"
+                );
+
+            } else {
+
+                column.classList.remove(
+                    "column-hidden"
+                );
+
+            }
+
+        });
+
+
+    updateColumnCounts();
+
+}
+
+
+function resetColumns() {
+
+    localStorage.removeItem(
+        columnStorageKey
+    );
+
+
+    document
+        .querySelectorAll(".column-option input")
+        .forEach(function(checkbox) {
+
+            checkbox.checked = true;
+
+        });
+
+
+    document
+        .querySelectorAll(".kanban-column")
+        .forEach(function(column) {
+
+            column.classList.remove(
+                "column-hidden"
+            );
+
+        });
+
+
+    updateColumnCounts();
+
+}
+
+
+// GLOBAL CLICK
+
+window.addEventListener(
+    "click",
+    function(event) {
+
+        if (
+            !event.target.closest(
+                ".profile-wrapper"
+            )
+        ) {
+
+            profileDropdown.classList.remove(
+                "show"
+            );
+
+        }
+
+
+        if (
+            openCardMenuElement &&
+            !event.target.closest(
+                ".card-menu-floating"
+            ) &&
+            !event.target.closest(
+                ".drag-handle"
+            )
+        ) {
+
+            closeCardMenu();
+
+        }
+
+
+        if (event.target === addModal) {
+
+            closeAddModal();
+
+        }
+
+
+        if (
+            event.target ===
+            document.getElementById(
+                "columnsModal"
+            )
+        ) {
+
+            closeColumnsModal();
+
+        }
+
+    }
+);
+
+
+// ESCAPE KEY
+
+document.addEventListener(
+    "keydown",
+    function(event) {
+
+        if (event.key === "Escape") {
+
+            closeAddModal();
+
+            closeColumnsModal();
+
+            closeCardMenu();
+
+            profileDropdown.classList.remove(
+                "show"
+            );
+
+        }
+
+    }
+);
+
+
+// CLOSE MENU WHEN SCROLLING
+
+window.addEventListener(
+    "scroll",
+    closeCardMenu,
+    true
+);
+
+
+// LOAD SAVED COLUMN SETTINGS
+
+loadColumnPreferences();
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - Job Tracker</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+<body>
+    <div class="auth-container">
+        <div class="auth-form">
+            <h1>Sign In</h1>
+            <p>Welcome back to Frenz Job Tracker</p>
+
+            {% with messages = get_flashed_messages(with_categories=true) %}
+                {% if messages %}
+                    {% for category, message in messages %}
+                        <div class="flash-message flash-{{ category }}">{{ message }}</div>
+                    {% endfor %}
+                {% endif %}
+            {% endwith %}
+
+            <form method="POST">
+
+                <label for="username_or_email">Username or Email</label>
+                <input type="text" id="username_or_email" name="username_or_email" required>
+
+                <label for="password">Password</label>
+                <div class="password-input-container">
+                    <input type="password" id="password" name="password" required>
+                    <button type="button" class="toggle-password" onclick="togglePassword('password', this)">Show</button>
+                </div>
+
+                <button type="submit">Sign In</button>
+
+            </form>
+
+            <p class="auth-link">
+                Don't have an account? <a href="{{ url_for('register') }}">Register</a>
+            </p>
+            <p class="auth-link">
+                Don't want to make account? <a href="{{ url_for('test_login') }}">Test acc</a>
+            </p>
+        </div>
+    </div>
+
+    <script>
+        function togglePassword(inputId, button) {
+            const input = document.getElementById(inputId);
+            if (input.type === "password") {
+                input.type = "text";
+                button.textContent = "Hide";
+            } else {
+                input.type = "password";
+                button.textContent = "Show";
+            }
+        }
+    </script>
+
+</body>
+</html>
