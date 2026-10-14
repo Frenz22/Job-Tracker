@@ -1265,9 +1265,28 @@ const addModal =
 const statusInput =
     document.getElementById("status");
 
+const dateAppliedInput =
+    document.getElementById("date_applied");
+
+function setDefaultAppliedDate() {
+
+    const today = new Date();
+
+    const localDate = [
+        today.getFullYear(),
+        String(today.getMonth() + 1).padStart(2, "0"),
+        String(today.getDate()).padStart(2, "0")
+    ].join("-");
+
+    dateAppliedInput.value = localDate;
+
+}
+
 function openAddModal(status = "Saved") {
 
     statusInput.value = status;
+
+    setDefaultAppliedDate();
 
     addModal.classList.add("show");
 
@@ -1997,14 +2016,6 @@ window.addEventListener(
             closeCardMenu();
 
         }
-
-
-        if (event.target === addModal) {
-
-            closeAddModal();
-
-        }
-
 
         if (
             event.target ===
